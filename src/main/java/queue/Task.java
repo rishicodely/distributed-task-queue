@@ -1,6 +1,7 @@
 package queue;
 
 import java.util.UUID;
+import java.security.Timestamp;
 import java.time.Instant;
 
 public class Task {
@@ -11,7 +12,7 @@ public class Task {
     private int attempts;
     private Instant createdAt;
 
-    public Task(String type, String payload){
+    public Task(String type, String payload) {
         this.id = UUID.randomUUID();
         this.type = type;
         this.payload = payload;
@@ -20,19 +21,27 @@ public class Task {
         this.createdAt = Instant.now();
     }
 
-    public UUID getUuid(){
+    public UUID getUuid() {
         return id;
     }
-    public TaskStatus getStatus(){
+
+    public TaskStatus getStatus() {
         return status;
     }
-    public void setStatus(TaskStatus status){
+
+    public void setStatus(TaskStatus status) {
         this.status = status;
     }
-    public String getType(){
+
+    public String getType() {
         return type;
     }
-    public String getPayload(){
+
+    public String getPayload() {
         return payload;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
     }
 }
