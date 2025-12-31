@@ -21,6 +21,21 @@ public class Task {
         this.createdAt = Instant.now();
     }
 
+    public Task(
+            UUID id,
+            String type,
+            String payload,
+            TaskStatus status,
+            int attempts,
+            Instant createdAt) {
+        this.id = id;
+        this.type = type;
+        this.payload = payload;
+        this.status = status;
+        this.attempts = attempts;
+        this.createdAt = createdAt;
+    }
+
     public UUID getUuid() {
         return id;
     }
