@@ -11,16 +11,17 @@ public class TaskRepository {
     private static final String PASSWORD = "queue_pass";
 
     public void save(Task task) {
-        String sql = "insert into tasks (id, type, payload, status, attempts, created_at) "
-                + "values (?, ?, ?, ?, ?, ?)";
+        String sql = "insert into tasks (id, type, payload, status, attempts, max_attempts, created_at) "
+                + "values (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
                 PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setObject(1, task.getUuid());
             ps.setString(2, task.getType());
             ps.setString(3, task.getPayload());
             ps.setString(4, task.getStatus().name());
-            ps.setInt(5, 0);
-            ps.setTimestamp(6, Timestamp.from(task.getCreatedAt()));
+            ps.setInt(5, task.getAttempts());
+            ps.setInt(6, task.getMaxAttempts());
+            ps.setTimestamp(7, Timestamp.from(task.getCreatedAt()));
 
             ps.executeUpdate();
 
@@ -36,7 +37,14 @@ public class TaskRepository {
                 Statement stmt = conn.createStatement();
                 ResultSet rs = stmt.executeQuery(sql)) {
             while (rs.next()) {
-                Task task = new Task(rs.getString("type"), rs.getString("payload"));
+                Task task = new Task(
+                        rs.getObject("id", UUID.class),
+                        rs.getString("type"),
+                        rs.getString("payload"),
+                        TaskStatus.valueOf(rs.getString("status")),
+                        rs.getInt("attempts"),
+                        rs.getInt("max_attempts"),
+                        rs.getTimestamp("created_at").toInstant());
                 tasks.add(task);
             }
         } catch (SQLException e) {
@@ -45,8 +53,8 @@ public class TaskRepository {
         return tasks;
     }
 
-    public Task fetchOnePending() {
-        String sql = "select * from tasks where status = 'pending' limit 1";
+    public Task fetchAndMarkRunning() {
+        String sql = "update tasks set status = 'RUNNING' where id = ( select id from tasks where status = 'PENDING' and attempts < max_attempts order by created_at limit 1) returning *";
 
         try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
                 Statement stmt = conn.createStatement();
@@ -55,13 +63,25 @@ public class TaskRepository {
             if (rs.next()) {
                 return new Task(rs.getObject("id", java.util.UUID.class),
                         rs.getString("type"), rs.getString("payload"), TaskStatus.valueOf(rs.getString("status")),
-                        rs.getInt("attempts"),
+                        rs.getInt("attempts"), rs.getInt("max_attempts"),
                         rs.getTimestamp("created_at").toInstant());
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public void incrementAttempts(UUID taskId) {
+        String sql = "update tasks set attempts = attempts + 1 where id = ?";
+        try (Connection conn = DriverManager.getConnection(URL, USER, PASSWORD);
+                PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setObject(1, taskId);
+            ps.executeUpdate();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     public void updateStatus(UUID taskId, TaskStatus status) {

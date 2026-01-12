@@ -1,7 +1,6 @@
 package queue;
 
 import java.util.UUID;
-import java.security.Timestamp;
 import java.time.Instant;
 
 public class Task {
@@ -10,6 +9,7 @@ public class Task {
     private String payload;
     private TaskStatus status;
     private int attempts;
+    private int maxAttempts;
     private Instant createdAt;
 
     public Task(String type, String payload) {
@@ -18,6 +18,7 @@ public class Task {
         this.payload = payload;
         this.status = TaskStatus.PENDING;
         this.attempts = 0;
+        this.maxAttempts = 3;
         this.createdAt = Instant.now();
     }
 
@@ -27,12 +28,14 @@ public class Task {
             String payload,
             TaskStatus status,
             int attempts,
+            int maxAttempts,
             Instant createdAt) {
         this.id = id;
         this.type = type;
         this.payload = payload;
         this.status = status;
         this.attempts = attempts;
+        this.maxAttempts = maxAttempts;
         this.createdAt = createdAt;
     }
 
@@ -42,6 +45,14 @@ public class Task {
 
     public TaskStatus getStatus() {
         return status;
+    }
+
+    public int getAttempts() {
+        return attempts;
+    }
+
+    public int getMaxAttempts() {
+        return maxAttempts;
     }
 
     public void setStatus(TaskStatus status) {

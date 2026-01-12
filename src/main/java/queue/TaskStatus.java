@@ -1,8 +1,8 @@
 package queue;
 
-public enum TaskStatus{
+public enum TaskStatus {
     PENDING,
     RUNNING,
-    DONE,
+    SUCCESS,
     FAILED
 }

@@ -15,16 +15,24 @@ public class Worker implements Runnable {
         while (true) {
             try {
                 System.out.println("Worker pulling db..");
-                Task task = repository.fetchOnePending();
+                Task task = repository.fetchAndMarkRunning();
                 if (task == null) {
                     System.out.println("No pending task found");
                     Thread.sleep(1000);
                     continue;
                 }
                 System.out.println("Task picked: " + task.getUuid());
-                repository.updateStatus(task.getUuid(), TaskStatus.RUNNING);
-                handler.handle(task);
-                repository.updateStatus(task.getUuid(), TaskStatus.DONE);
+                try {
+                    handler.handle(task);
+                    repository.updateStatus(task.getUuid(), TaskStatus.SUCCESS);
+                } catch (Exception e) {
+                    repository.incrementAttempts(task.getUuid());
+                    if (task.getAttempts() + 1 >= task.getMaxAttempts()) {
+                        repository.updateStatus(task.getUuid(), TaskStatus.FAILED);
+                    } else {
+                        repository.updateStatus(task.getUuid(), TaskStatus.PENDING);
+                    }
+                }
             } catch (Exception e) {
                 e.printStackTrace();
             }
