@@ -18,7 +18,7 @@ public class Worker implements Runnable {
                 Task task = repository.fetchAndMarkRunning();
                 if (task == null) {
                     System.out.println("No pending task found");
-                    Thread.sleep(1000);
+                    Thread.sleep(3000);
                     continue;
                 }
                 System.out.println("Task picked: " + task.getUuid());
@@ -30,7 +30,7 @@ public class Worker implements Runnable {
                     if (task.getAttempts() + 1 >= task.getMaxAttempts()) {
                         repository.updateStatus(task.getUuid(), TaskStatus.FAILED);
                     } else {
-                        repository.updateStatus(task.getUuid(), TaskStatus.PENDING);
+                        repository.scheduleRetry(task.getUuid(), task.getAttempts() + 1);
                     }
                 }
             } catch (Exception e) {

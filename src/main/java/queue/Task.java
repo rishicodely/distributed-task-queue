@@ -11,6 +11,7 @@ public class Task {
     private int attempts;
     private int maxAttempts;
     private Instant createdAt;
+    private Instant nextRunAt;
 
     public Task(String type, String payload) {
         this.id = UUID.randomUUID();
@@ -20,6 +21,7 @@ public class Task {
         this.attempts = 0;
         this.maxAttempts = 3;
         this.createdAt = Instant.now();
+        this.nextRunAt = Instant.now();
     }
 
     public Task(
@@ -29,7 +31,8 @@ public class Task {
             TaskStatus status,
             int attempts,
             int maxAttempts,
-            Instant createdAt) {
+            Instant createdAt,
+            Instant nextRunAt) {
         this.id = id;
         this.type = type;
         this.payload = payload;
@@ -37,6 +40,7 @@ public class Task {
         this.attempts = attempts;
         this.maxAttempts = maxAttempts;
         this.createdAt = createdAt;
+        this.nextRunAt = nextRunAt;
     }
 
     public UUID getUuid() {
@@ -69,5 +73,9 @@ public class Task {
 
     public Instant getCreatedAt() {
         return createdAt;
+    }
+
+    public Instant getNextRunAt() {
+        return nextRunAt;
     }
 }
